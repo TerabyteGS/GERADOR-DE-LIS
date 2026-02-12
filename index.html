@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Símic LIS System</title>
+    <script src="https://alcdn.msauth.net/browser/2.30.0/js/msal-browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- MANTENHA TODO O CSS ANTERIOR AQUI (DARK THEME) --- */
+        /* Vou resumir para não estourar o texto, mas copie o CSS da versão anterior completo */
+        :root { --bg-body: #1F2B33; --bg-input: #2C3D48; --accent: #EF7D40; --text-white: #ffffff; }
+        body { background-color: var(--bg-body); color: var(--text-white); font-family: 'Inter', sans-serif; margin: 0; padding: 20px; display: flex; flex-direction: column; min-height: 100vh; }
+        .container { max-width: 600px; margin: 0 auto; width: 100%; } /* Centraliza na tela cheia */
+        /* ... resto do CSS ... */
+        
+        /* Adicional para tela de Login */
+        #login-screen { text-align: center; margin-top: 100px; }
+        #app-screen { display: none; }
+        .btn-ms { background: #0078D4; color: white; border: none; padding: 15px 30px; font-size: 16px; border-radius: 4px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div id="login-screen">
+            <h1 style="color:var(--accent)">SÍMIC LIS CONNECT</h1>
+            <p>Faça login com sua conta Microsoft Símic para acessar a base.</p>
+            <button class="btn-ms" onclick="signIn()">Entrar com Microsoft 365</button>
+        </div>
+
+        <div id="app-screen">
+            <div class="header" style="display:flex; justify-content:space-between;">
+                <span class="logo">SÍMIC LIS WEB</span>
+                <span id="user-name" style="font-size:10px; color:#aaa"></span>
+            </div>
+
+            <div class="search-box">
+                <input list="db-products" id="comercial_name" placeholder="Buscar no SharePoint..." oninput="checkDB()">
+                <datalist id="db-products"></datalist>
+                <button id="btn-save-db" onclick="saveToSharePoint()">💾</button>
+            </div>
+            
+            </div>
+    </div>
+
+    <script>
+        // --- CONFIGURAÇÃO AZURE (PREENCHA AQUI) ---
+        const msalConfig = {
+            auth: {
+                clientId: "SEU_CLIENT_ID_AQUI", // O mesmo que criamos
+                authority: "https://login.microsoftonline.com/SEU_TENANT_ID_AQUI",
+                redirectUri: window.location.origin // Detecta automático
+            }
+        };
+
+        // --- DADOS DO ARQUIVO EXCEL ---
+        const FILE_ID = "SEU_FILE_ID_DO_SHAREPOINT";
+        const TABLE_NAME = "TabelaLubrificantes";
+
+        // --- INICIALIZAÇÃO MSAL ---
+        const msalInstance = new msal.PublicClientApplication(msalConfig);
+        let username = "";
+
+        async function signIn() {
+            try {
+                const loginResponse = await msalInstance.loginPopup({
+                    scopes: ["Files.ReadWrite.All", "User.Read"]
+                });
+                username = loginResponse.account.name;
+                document.getElementById("user-name").innerText = username;
+                document.getElementById("login-screen").style.display = "none";
+                document.getElementById("app-screen").style.display = "block";
+                
+                loadDB(); // Carrega o banco assim que logar
+            } catch (err) {
+                alert("Erro no login: " + err);
+            }
+        }
+
+        // --- FUNÇÃO DE TOKEN (Pega a chave para chamar o Graph) ---
+        async function getToken() {
+            const account = msalInstance.getAllAccounts()[0];
+            const response = await msalInstance.acquireTokenSilent({
+                scopes: ["Files.ReadWrite.All"],
+                account: account
+            });
+            return response.accessToken;
+        }
+
+        // --- LER DO SHAREPOINT (Substitui o google.script.run) ---
+        async function loadDB() {
+            const token = await getToken();
+            const url = `https://graph.microsoft.com/v1.0/sites/root/drive/items/${FILE_ID}/workbook/tables/${TABLE_NAME}/rows`;
+            
+            const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+            const json = await res.json();
+            
+            // Mapeia igual fazíamos no Google Script
+            window.dbData = json.value.map(row => ({
+                nome: row.values[0][0], tipo: row.values[0][1], visc: row.values[0][2],
+                // ... mapeie o resto das colunas baseado no índice ...
+            }));
+            
+            updateDatalist(); // Função que já existe no seu código
+        }
+
+        // --- SALVAR NO SHAREPOINT ---
+        async function saveToSharePoint() {
+            const token = await getToken();
+            const url = `https://graph.microsoft.com/v1.0/sites/root/drive/items/${FILE_ID}/workbook/tables/${TABLE_NAME}/rows/add`;
+            
+            // Pega dados do form (igual antes)
+            const obj = { /* ... colete os dados dos inputs ... */ };
+            const newRow = [[obj.nome, obj.tipo, obj.visc /* ... ordem exata do excel ... */ ]];
+
+            await fetch(url, {
+                method: "POST",
+                headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+                body: JSON.stringify({ index: null, values: newRow })
+            });
+            
+            alert("Salvo com sucesso!");
+            loadDB(); // Recarrega
+        }
+
+        // ... AQUI EMBAIXO COLAR TODAS AS FUNÇÕES DE LÓGICA (gerarCodigo, populateIso, etc) ...
+    </script>
+</body>
+</html>
