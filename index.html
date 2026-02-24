@@ -223,7 +223,7 @@
     <script>
 
         // Adicione essa variável no topo do seu código
-        let DRIVE_ID = ""; 
+        let DRIVE_ID = "b!rCudEbHTyk6PZ-f9u8Apl2qHlmNEJ9lFiMdt_hPUGft63_TsvD-bRYjWP6E9I1Re"; 
         const FILE_ID = "0164J74WRQGFGZ7NJBJBF3IABKWOVVQKYF"; 
 
        
@@ -238,7 +238,7 @@
                 const arquivo = json.value.find(item => item.name === "Base LIS.xlsx");
                 
                 if (arquivo) {
-                    // Pegamos o ID do arquivo E o ID do Drive (biblioteca) onde ele está
+                    
                     const fileId = arquivo.remoteItem ? arquivo.remoteItem.id : arquivo.id;
                     const driveId = arquivo.remoteItem ? arquivo.remoteItem.parentReference.driveId : arquivo.parentReference.driveId;
                     
