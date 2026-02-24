@@ -8,77 +8,285 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     
     <style>
-        /* --- MANTENHA TODO O CSS ANTERIOR AQUI (DARK THEME) --- */
-        /* Vou resumir para não estourar o texto, mas copie o CSS da versão anterior completo */
-        :root { --bg-body: #1F2B33; --bg-input: #2C3D48; --accent: #EF7D40; --text-white: #ffffff; }
-        body { background-color: var(--bg-body); color: var(--text-white); font-family: 'Inter', sans-serif; margin: 0; padding: 20px; display: flex; flex-direction: column; min-height: 100vh; }
-        .container { max-width: 600px; margin: 0 auto; width: 100%; } /* Centraliza na tela cheia */
-        /* ... resto do CSS ... */
-        
-        /* Adicional para tela de Login */
-        #login-screen { text-align: center; margin-top: 100px; }
+        :root {
+            --bg-body: #1F2B33;
+            --bg-panel: #263540;
+            --bg-input: #151D22;
+            --accent: #EF7D40; /* Laranja Símic */
+            --accent-hover: #D66A30;
+            --text-main: #FFFFFF;
+            --text-muted: #889AA6;
+            --border: #3A4B56;
+            --success: #28A745;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        /* TELA DE LOGIN */
+        #login-screen {
+            text-align: center;
+            margin-top: 15vh;
+            background: var(--bg-panel);
+            padding: 50px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        #login-screen h1 { color: var(--accent); letter-spacing: 2px; }
+        .btn-ms {
+            background: #0078D4;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: 0.2s;
+        }
+        .btn-ms:hover { background: #0060A6; }
+
+        /* TELA DO APLICATIVO */
         #app-screen { display: none; }
-        .btn-ms { background: #0078D4; color: white; border: none; padding: 15px 30px; font-size: 16px; border-radius: 4px; cursor: pointer; }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--accent);
+        }
+        .logo { font-size: 24px; font-weight: 800; color: var(--accent); letter-spacing: 1px;}
+        
+        .layout-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 768px) { .layout-grid { grid-template-columns: 1fr; } }
+
+        .panel {
+            background: var(--bg-panel);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+        .panel h3 { margin-top: 0; color: var(--text-muted); font-size: 14px; text-transform: uppercase; }
+
+        /* Formulários */
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 5px; }
+        input, select {
+            width: 100%;
+            background: var(--bg-input);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            padding: 10px;
+            border-radius: 4px;
+            font-family: 'Inter', sans-serif;
+            box-sizing: border-box;
+        }
+        input:focus, select:focus { outline: none; border-color: var(--accent); }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 12px;
+            width: 100%;
+            font-weight: 600;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .btn-primary:hover { background: var(--accent-hover); }
+
+        /* Área do LIS Visual */
+        .lis-preview-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-input);
+            height: 200px;
+            border-radius: 8px;
+            border: 2px dashed var(--border);
+            margin-top: 20px;
+        }
+        
+        /* Forma LIS Base (Ex: Losango/Hexágono - Simplificado para Círculo/Quadrado por enquanto) */
+        .lis-shape {
+            width: 100px;
+            height: 100px;
+            background: #ccc; /* Cor dinâmica */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 24px;
+            font-weight: bold;
+            color: #000;
+            border: 4px solid #fff;
+        }
     </style>
 </head>
 <body>
 
     <div class="container">
         <div id="login-screen">
-            <h1 style="color:var(--accent)">SÍMIC LIS CONNECT</h1>
-            <p>Faça login com sua conta Microsoft Símic para acessar a base.</p>
+            <h1>SÍMIC LIS CONNECT</h1>
+            <p>Gerenciamento de Identificação de Lubrificantes</p>
             <button class="btn-ms" onclick="signIn()">Entrar com Microsoft 365</button>
         </div>
 
         <div id="app-screen">
-            <div class="header" style="display:flex; justify-content:space-between;">
+            <div class="header">
                 <span class="logo">SÍMIC LIS WEB</span>
-                <span id="user-name" style="font-size:10px; color:#aaa"></span>
+                <span id="user-name" style="font-size:12px; color:var(--text-muted)"></span>
             </div>
 
-            <div class="search-box">
-                <input list="db-products" id="comercial_name" placeholder="Buscar no SharePoint..." oninput="checkDB()">
-                <datalist id="db-products"></datalist>
-                <button id="btn-save-db" onclick="saveToSharePoint()">💾</button>
+            <div class="layout-grid">
+                <div class="panel">
+                    <h3>Dados do Produto</h3>
+                    
+                    <div class="form-group">
+                        <label>Buscar no SharePoint (Base LIS.xlsx)</label>
+                        <input list="db-products" id="comercial_name" placeholder="Digite o nome comercial..." onchange="fillFromDB()">
+                        <datalist id="db-products"></datalist>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Tipo</label>
+                        <select id="tipo">
+                            <option value="Óleo">Óleo</option>
+                            <option value="Graxa">Graxa</option>
+                        </select>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div class="form-group">
+                            <label>Viscosidade (ISO VG)</label>
+                            <input type="number" id="visc" placeholder="Ex: 220">
+                        </div>
+                        <div class="form-group">
+                            <label>Base (Tipo)</label>
+                            <select id="base_tipo">
+                                <option value="Mineral">Mineral</option>
+                                <option value="Sintético">Sintético</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button class="btn-primary" onclick="generateLIS()">Gerar Código LIS</button>
+                    <button class="btn-primary" style="background:#28A745; margin-top:10px;" onclick="saveToSharePoint()">Salvar no SharePoint</button>
+                    <button onclick="pescarID()" style="background: #DC3545; color: white; padding: 15px; border: none; border-radius: 4px; width: 100%; margin-top: 20px; font-weight: bold; cursor: pointer;">
+                        🕵️‍♂️ PESCAR ID DA PLANILHA
+                    </button>   
+
+                </div>
+
+                <div class="panel">
+                    <h3>Preview da Tag (Pictograma)</h3>
+                    <div class="lis-preview-box">
+                        <div id="lis-visual" class="lis-shape" style="border-radius: 50%;">
+                            --
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 20px;">
+                        <p style="font-size:12px; color:var(--text-muted); margin-bottom:5px;">Código Gerado:</p>
+                        <div id="lis-code-text" style="font-family:'Roboto Mono'; font-size:20px; color:var(--accent); background:var(--bg-input); padding:10px; border-radius:4px; text-align:center;">
+                            Aguardando...
+                        </div>
+                    </div>
+                </div>
             </div>
-            
-            </div>
+        </div>
     </div>
 
+    
+
     <script>
-        
+
+        async function pescarID() {
+        try {
+            const token = await getToken();
+            // Busca os últimos arquivos que VOCÊ abriu na empresa
+            const res = await fetch("https://graph.microsoft.com/v1.0/me/drive/recent", { 
+                headers: { Authorization: `Bearer ${token}` } 
+            });
+            
+            const json = await res.json();
+            
+            // Procura exatamente pelo nome da sua planilha
+            const arquivo = json.value.find(item => item.name === "Base LIS.xlsx");
+            
+            if (arquivo) {
+                // Se for do SharePoint, o ID fica dentro de remoteItem
+                const idGigante = arquivo.remoteItem ? arquivo.remoteItem.id : arquivo.id;
+                prompt("🎉 ACHAMOS O CÓDIGO! Copie o texto abaixo e cole na sua variável FILE_ID:", idGigante);
+            } else {
+                alert("A planilha não está nos seus recentes!\n\nVá no navegador normal, abra a 'Base LIS.xlsx' no SharePoint, olhe pra ela por 5 segundos, feche e clique neste botão de novo.");
+            }
+        } catch (e) {
+            alert("Erro no radar: " + e);
+        }
+    }
+
+
+        // ==========================================
+        // 1. CONFIGURAÇÃO AZURE AD & SHAREPOINT
+        // ==========================================
         const msalConfig = {
             auth: {
                 clientId: "cd97adfa-663f-4324-93ab-cc7e57d158e8", 
                 authority: "https://login.microsoftonline.com/cd6259c8-7fcd-4de7-a4c4-9059729e62e7", 
+                redirectUri: window.location.origin // CRÍTICO: Não apague essa linha!
             }
         };
 
+        // COLE O SEU FILE_ID AQUI!
+        const FILE_ID = "COLE_AQUI_AQUELE_ID_GIGANTE_DO_GRAPH_EXPLORER"; 
         
-        const FILE_ID = "COLE_AQUI_AQUELE_ID_GIGANTE_DO_GRAPH_EXPLORER";
-        const TABLE_NAME = "TabelaLubrificantes";
+        // A tabela dentro da aba "LIS" DEVE ter esse nome lá no Excel (Design da Tabela -> Nome)
+        const TABLE_NAME = "TabelaLubrificantes"; 
 
-        
         const msalInstance = new msal.PublicClientApplication(msalConfig);
-        let username = "";
+        let sharepointDB = [];
 
+        // ==========================================
+        // 2. AUTENTICAÇÃO
+        // ==========================================
         async function signIn() {
             try {
                 const loginResponse = await msalInstance.loginPopup({
                     scopes: ["Files.ReadWrite.All", "User.Read"]
                 });
-                username = loginResponse.account.name;
-                document.getElementById("user-name").innerText = username;
+                document.getElementById("user-name").innerText = "👤 " + loginResponse.account.name;
                 document.getElementById("login-screen").style.display = "none";
                 document.getElementById("app-screen").style.display = "block";
                 
-                loadDB(); 
+                loadDB(); // Puxa a planilha assim que logar
             } catch (err) {
-                alert("Erro no login: " + err);
+                console.error(err);
+                alert("Erro no login. Verifique o console.");
             }
         }
 
-        
         async function getToken() {
             const account = msalInstance.getAllAccounts()[0];
             const response = await msalInstance.acquireTokenSilent({
@@ -88,43 +296,114 @@
             return response.accessToken;
         }
 
-       
+        // ==========================================
+        // 3. COMUNICAÇÃO COM SHAREPOINT (GRAPH API)
+        // ==========================================
         async function loadDB() {
-            const token = await getToken();
-            const url = `https://graph.microsoft.com/v1.0/sites/root/drive/items/${FILE_ID}/workbook/tables/${TABLE_NAME}/rows`;
-            
-            const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-            const json = await res.json();
-            
-            
-            window.dbData = json.value.map(row => ({
-                nome: row.values[0][0], tipo: row.values[0][1], visc: row.values[0][2],
+            try {
+                const token = await getToken();
                 
-            }));
-            
-            updateDatalist(); 
+                // URL para acessar itens em um site específico (desenvolvimento_simic)
+                const url = `https://graph.microsoft.com/v1.0/sites/simiccombr.sharepoint.com:/sites/desenvolvimento_simic:/drive/items/${FILE_ID}/workbook/worksheets/LIS/tables/${TABLE_NAME}/rows`;
+                
+                const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+                
+                if(!res.ok) throw new Error("Erro ao ler tabela. Verifique o FILE_ID e se a tabela chama " + TABLE_NAME);
+                
+                const json = await res.json();
+                
+                // Limpa a lista
+                const datalist = document.getElementById("db-products");
+                datalist.innerHTML = "";
+                sharepointDB = [];
+
+                // Mapeia as linhas do Excel (Ajuste os índices conforme suas colunas reais)
+                json.value.forEach(row => {
+                    const vals = row.values[0];
+                    const obj = {
+                        comercial: vals[0], // Coluna A
+                        tipo: vals[1],      // Coluna B
+                        visc: vals[2],      // Coluna C
+                        base: vals[3]       // Coluna D
+                    };
+                    sharepointDB.push(obj);
+                    
+                    const option = document.createElement("option");
+                    option.value = obj.comercial;
+                    datalist.appendChild(option);
+                });
+                console.log("Banco carregado com sucesso!");
+            } catch (error) {
+                console.error(error);
+                alert(error.message);
+            }
         }
 
-        
         async function saveToSharePoint() {
-            const token = await getToken();
-            const url = `https://graph.microsoft.com/v1.0/sites/root/drive/items/${FILE_ID}/workbook/tables/${TABLE_NAME}/rows/add`;
-            
-            
-            const obj = { /* ... colete os dados dos inputs ... */ };
-            const newRow = [[obj.nome, obj.tipo, obj.visc /* ... ordem exata do excel ... */ ]];
+            try {
+                const comercial = document.getElementById("comercial_name").value;
+                const tipo = document.getElementById("tipo").value;
+                const visc = document.getElementById("visc").value;
+                const base = document.getElementById("base_tipo").value;
 
-            await fetch(url, {
-                method: "POST",
-                headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-                body: JSON.stringify({ index: null, values: newRow })
-            });
-            
-            alert("Salvo com sucesso!");
-            loadDB(); // Recarrega
+                if(!comercial) return alert("Preencha o nome comercial!");
+
+                const token = await getToken();
+                const url = `https://graph.microsoft.com/v1.0/sites/simiccombr.sharepoint.com:/sites/desenvolvimento_simic:/drive/items/${FILE_ID}/workbook/worksheets/LIS/tables/${TABLE_NAME}/rows/add`;
+                
+                // Os valores devem bater exatamente com a ordem das colunas no Excel
+                const newRow = [[comercial, tipo, visc, base, "", "", ""]];
+
+                await fetch(url, {
+                    method: "POST",
+                    headers: { 
+                        Authorization: `Bearer ${token}`, 
+                        "Content-Type": "application/json" 
+                    },
+                    body: JSON.stringify({ index: null, values: newRow })
+                });
+                
+                alert("Salvo no SharePoint com sucesso!");
+                loadDB(); // Atualiza a lista
+            } catch (error) {
+                console.error(error);
+                alert("Erro ao salvar.");
+            }
         }
 
-      
+        // ==========================================
+        // 4. LÓGICA DO APP (Preenchimento e Design LIS)
+        // ==========================================
+        function fillFromDB() {
+            const input = document.getElementById("comercial_name").value;
+            const found = sharepointDB.find(p => p.comercial === input);
+            if(found) {
+                document.getElementById("tipo").value = found.tipo;
+                document.getElementById("visc").value = found.visc;
+                document.getElementById("base_tipo").value = found.base;
+                generateLIS();
+            }
+        }
+
+        function generateLIS() {
+            const tipo = document.getElementById("tipo").value;
+            const visc = document.getElementById("visc").value || "00";
+            const base = document.getElementById("base_tipo").value;
+
+            // Lógica fictícia para formato/cor (Ajuste para o padrão Símic real)
+            let corBase = base === "Sintético" ? "#0078D4" : "#F2C811"; // Azul sintético, Amarelo mineral
+            let formato = tipo === "Óleo" ? "50%" : "10%"; // Redondo para Óleo, Quadrado curvo p/ Graxa
+            let sigla = tipo === "Óleo" ? "OL" : "GR";
+
+            // Atualiza Visual
+            const visual = document.getElementById("lis-visual");
+            visual.style.backgroundColor = corBase;
+            visual.style.borderRadius = formato;
+            visual.innerText = visc;
+
+            // Atualiza Texto
+            document.getElementById("lis-code-text").innerText = `${sigla}-${visc}-${base.substring(0,3).toUpperCase()}`;
+        }
     </script>
 </body>
 </html>
