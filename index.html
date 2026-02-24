@@ -46,20 +46,19 @@
     </div>
 
     <script>
-        // --- CONFIGURAÇÃO AZURE (PREENCHA AQUI) ---
+        
         const msalConfig = {
             auth: {
-                clientId: "SEU_CLIENT_ID_AQUI", // O mesmo que criamos
-                authority: "https://login.microsoftonline.com/SEU_TENANT_ID_AQUI",
-                redirectUri: window.location.origin // Detecta automático
+                clientId: "cd97adfa-663f-4324-93ab-cc7e57d158e8", 
+                authority: "https://login.microsoftonline.com/cd6259c8-7fcd-4de7-a4c4-9059729e62e7", 
             }
         };
 
-        // --- DADOS DO ARQUIVO EXCEL ---
-        const FILE_ID = "SEU_FILE_ID_DO_SHAREPOINT";
+        // 🚨 ATENÇÃO: Não esqueça de colocar o ID do seu arquivo Excel aqui embaixo!
+        const FILE_ID = "COLE_AQUI_AQUELE_ID_GIGANTE_DO_GRAPH_EXPLORER";
         const TABLE_NAME = "TabelaLubrificantes";
 
-        // --- INICIALIZAÇÃO MSAL ---
+        
         const msalInstance = new msal.PublicClientApplication(msalConfig);
         let username = "";
 
@@ -73,13 +72,13 @@
                 document.getElementById("login-screen").style.display = "none";
                 document.getElementById("app-screen").style.display = "block";
                 
-                loadDB(); // Carrega o banco assim que logar
+                loadDB(); 
             } catch (err) {
                 alert("Erro no login: " + err);
             }
         }
 
-        // --- FUNÇÃO DE TOKEN (Pega a chave para chamar o Graph) ---
+        
         async function getToken() {
             const account = msalInstance.getAllAccounts()[0];
             const response = await msalInstance.acquireTokenSilent({
@@ -89,7 +88,7 @@
             return response.accessToken;
         }
 
-        // --- LER DO SHAREPOINT (Substitui o google.script.run) ---
+       
         async function loadDB() {
             const token = await getToken();
             const url = `https://graph.microsoft.com/v1.0/sites/root/drive/items/${FILE_ID}/workbook/tables/${TABLE_NAME}/rows`;
@@ -97,21 +96,21 @@
             const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
             const json = await res.json();
             
-            // Mapeia igual fazíamos no Google Script
+            
             window.dbData = json.value.map(row => ({
                 nome: row.values[0][0], tipo: row.values[0][1], visc: row.values[0][2],
-                // ... mapeie o resto das colunas baseado no índice ...
+                
             }));
             
-            updateDatalist(); // Função que já existe no seu código
+            updateDatalist(); 
         }
 
-        // --- SALVAR NO SHAREPOINT ---
+        
         async function saveToSharePoint() {
             const token = await getToken();
             const url = `https://graph.microsoft.com/v1.0/sites/root/drive/items/${FILE_ID}/workbook/tables/${TABLE_NAME}/rows/add`;
             
-            // Pega dados do form (igual antes)
+            
             const obj = { /* ... colete os dados dos inputs ... */ };
             const newRow = [[obj.nome, obj.tipo, obj.visc /* ... ordem exata do excel ... */ ]];
 
@@ -125,7 +124,7 @@
             loadDB(); // Recarrega
         }
 
-        // ... AQUI EMBAIXO COLAR TODAS AS FUNÇÕES DE LÓGICA (gerarCodigo, populateIso, etc) ...
+      
     </script>
 </body>
 </html>
