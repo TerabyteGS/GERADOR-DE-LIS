@@ -1,399 +1,448 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
+  <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Símic LIS System</title>
+    <base target="_top">
+    
     <script src="https://alcdn.msauth.net/browser/2.30.0/js/msal-browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/gitbrent/pptxgenjs@3.12.0/libs/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/gitbrent/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     
     <style>
-        :root {
-            --bg-body: #1F2B33;
-            --bg-panel: #263540;
-            --bg-input: #151D22;
-            --accent: #EF7D40; 
-            --accent-hover: #D66A30;
-            --text-main: #FFFFFF;
-            --text-muted: #889AA6;
-            --border: #3A4B56;
-            --success: #28A745;
-        }
+      :root {
+        --bg-body: #1F2B33;
+        --bg-input: #2C3D48;
+        --accent: #EF7D40;
+        --text-white: #ffffff;
+        --text-label: #90A4AE;
+        --border: #455A64;
+        --btn-clear: #546E7A;
+      }
 
-        body {
-            background-color: var(--bg-body);
-            color: var(--text-main);
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-        }
+      body {
+        background-color: var(--bg-body);
+        color: var(--text-white);
+        font-family: 'Inter', sans-serif;
+        margin: 0; padding: 0;
+        display: flex; flex-direction: column;
+        height: 100vh; user-select: none;
+      }
 
-        .container {
-            width: 100%;
-            max-width: 900px;
-        }
+      /* --- HEADER --- */
+      .header {
+        background: #151e24; padding: 15px 20px;
+        border-bottom: 3px solid var(--accent);
+        display: flex; justify-content: space-between; align-items: center;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      }
+      .logo { 
+        font-family: 'Roboto Mono', monospace; color: var(--accent); 
+        font-weight: 700; font-size: 16px; letter-spacing: 1.5px; 
+      }
+      .btn-ms {
+        background: #0078D4; color: white; border: none; padding: 8px 15px;
+        font-size: 12px; font-weight: 600; border-radius: 4px; cursor: pointer;
+      }
 
-        
-        #login-screen {
-            text-align: center;
-            margin-top: 15vh;
-            background: var(--bg-panel);
-            padding: 50px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-        #login-screen h1 { color: var(--accent); letter-spacing: 2px; }
-        .btn-ms {
-            background: #0078D4;
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            font-size: 16px;
-            font-weight: 600;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-top: 20px;
-            transition: 0.2s;
-        }
-        .btn-ms:hover { background: #0060A6; }
+      /* --- BODY --- */
+      .calculator-body {
+        flex: 1; overflow-y: auto; padding: 20px;
+        display: flex; flex-direction: column; gap: 20px;
+      }
 
-        
-        #app-screen { display: none; }
-        
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid var(--accent);
-        }
-        .logo { font-size: 24px; font-weight: 800; color: var(--accent); letter-spacing: 1px;}
-        
-        .layout-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-        @media (max-width: 768px) { .layout-grid { grid-template-columns: 1fr; } }
+      /* --- INPUTS --- */
+      .field-group { display: flex; flex-direction: column; gap: 8px; }
+      label { font-size: 11px; text-transform: uppercase; color: var(--text-label); font-weight: 700; letter-spacing: 0.5px; }
+      input, select {
+        width: 100%; height: 45px; background: var(--bg-input); border: 2px solid var(--border);
+        border-radius: 8px; color: white; padding: 0 15px; font-size: 13px;
+        font-family: 'Inter', sans-serif; box-sizing: border-box; transition: 0.2s;
+      }
+      input:focus, select:focus { border-color: var(--accent); outline: none; background: #344855; }
 
-        .panel {
-            background: var(--bg-panel);
-            padding: 20px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-        }
-        .panel h3 { margin-top: 0; color: var(--text-muted); font-size: 14px; text-transform: uppercase; }
+      /* --- MODE SWITCHER --- */
+      .mode-switcher { display: flex; background: var(--bg-input); border-radius: 10px; padding: 5px; border: 1px solid var(--border); }
+      .mode-btn { flex: 1; text-align: center; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: 800; font-size: 14px; color: var(--text-label); transition: 0.2s; text-transform: uppercase; }
+      .mode-btn.active { background: var(--accent); color: var(--bg-body); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
 
-        
-        .form-group { margin-bottom: 15px; }
-        label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 5px; }
-        input, select {
-            width: 100%;
-            background: var(--bg-input);
-            color: var(--text-main);
-            border: 1px solid var(--border);
-            padding: 10px;
-            border-radius: 4px;
-            font-family: 'Inter', sans-serif;
-            box-sizing: border-box;
-        }
-        input:focus, select:focus { outline: none; border-color: var(--accent); }
+      /* --- GRID --- */
+      .row { display: flex; gap: 15px; }
+      .col { flex: 1; }
+      
+      .iso-calculator { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border-left: 4px solid var(--accent); }
+      .iso-header { color: var(--accent); font-size: 11px; font-weight: bold; margin-bottom: 10px; display: block; }
+      .hidden { display: none !important; }
 
-        .btn-primary {
-            background: var(--accent);
-            color: white;
-            border: none;
-            padding: 12px;
-            width: 100%;
-            font-weight: 600;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        .btn-primary:hover { background: var(--accent-hover); }
+      /* --- FOOTER & BUTTONS --- */
+      .footer { background: #151e24; padding: 20px; border-top: 1px solid var(--border); }
+      .result-container { position: relative; margin-bottom: 15px; }
+      #final-code { width: 100%; height: 60px; background: black; border: 2px dashed var(--accent); color: var(--accent); font-family: 'Roboto Mono', monospace; font-size: 16px; font-weight: bold; text-align: center; padding-right: 40px; }
+      .copy-icon { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 20px; color: #546E7A; }
+      .copy-icon:hover { color: white; }
+      
+      .action-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+      .btn-primary { flex: 1; height: 50px; background: var(--accent); color: #1F2B33; font-size: 14px; font-weight: 900; text-transform: uppercase; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 0 #bd5b28; transition: 0.1s; min-width: 140px;}
+      .btn-primary:active { transform: translateY(4px); box-shadow: none; }
+      .btn-secondary { flex: 1; height: 50px; background: var(--btn-clear); color: white; font-size: 14px; font-weight: 700; text-transform: uppercase; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 0 #37474F; transition: 0.1s; min-width: 140px;}
+      .btn-secondary:active { transform: translateY(4px); box-shadow: none; }
+      .btn-success { background: #28a745; color: white; box-shadow: 0 4px 0 #1e7e34; }
 
-        
-        .lis-preview-box {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--bg-input);
-            height: 200px;
-            border-radius: 8px;
-            border: 2px dashed var(--border);
-            margin-top: 20px;
-        }
-        
-        
-        .lis-shape {
-            width: 100px;
-            height: 100px;
-            background: #ccc; 
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Roboto Mono', monospace;
-            font-size: 24px;
-            font-weight: bold;
-            color: #000;
-            border: 4px solid #fff;
-        }
+      /* --- TAGS LIS RENDER --- */
+      .tags-preview-container { display: flex; justify-content: center; background: #fff; padding: 20px; border-radius: 8px; margin-top: 20px; overflow: auto;}
+      
+      /* Tag Óleo (Quadrado) */
+      .tag-oleo {
+          width: 300px; height: 300px; background: white; border: 4px solid black; display: grid;
+          grid-template-areas: "special color grey" "app app grey" "code code code";
+          grid-template-columns: 80px 1fr 50px; grid-template-rows: 80px 1fr 50px;
+          font-family: Arial, sans-serif; box-sizing: border-box;
+      }
+      .tag-oleo .special { grid-area: special; display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:bold; color:black; border-right:2px solid black; border-bottom:2px solid black;}
+      .tag-oleo .color { grid-area: color; background: #FFFFFF; border-bottom:2px solid black; transition: background 0.3s;}
+      .tag-oleo .grey { grid-area: grey; background: #e0e0e0; border-left:2px solid black; position: relative; overflow: hidden; }
+      .tag-oleo .grey span { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-90deg); white-space: nowrap; font-weight: bold; font-size: 20px; color: black; }
+      .tag-oleo .app { grid-area: app; display:flex; align-items:center; justify-content:center; font-size:70px; font-weight:bold; color:black;}
+      .tag-oleo .code { grid-area: code; background: black; color: white; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:bold;}
+
+      /* Tag Graxa (Círculo) */
+      .tag-graxa {
+          width: 300px; height: 300px; background: white; border: 4px solid black; border-radius: 50%;
+          position: relative; overflow: hidden; font-family: Arial, sans-serif; box-sizing: border-box;
+      }
+      .tag-graxa .bg-color { position: absolute; top:0; right:0; width:40%; height:100%; background: #FFFFFF; border-left: 2px solid black; transition: background 0.3s;}
+      .tag-graxa .thick { position: absolute; top:0; left:0; width:60%; height:50%; display:flex; align-items:center; justify-content:center; font-size:70px; font-weight:bold; color:black;}
+      .tag-graxa .code { position: absolute; top:50%; left:0; width:100%; height:50px; transform:translateY(-50%); background:black; color:white; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:bold; z-index:2;}
+      .tag-graxa .nlgi { position: absolute; bottom:0; left:0; width:60%; height:50%; display:flex; align-items:center; justify-content:center; font-size:30px; font-weight:bold; color:black;}
     </style>
-</head>
-<body>
+  </head>
+  <body>
 
-    <div class="container">
-        <div id="login-screen">
-            <h1>SÍMIC LIS CONNECT</h1>
-            <p>Gerenciamento de Identificação de Lubrificantes</p>
-            <button class="btn-ms" onclick="signIn()">Entrar com Microsoft 365</button>
-        </div>
-
-        <div id="app-screen">
-            <div class="header">
-                <span class="logo">SÍMIC LIS WEB</span>
-                <span id="user-name" style="font-size:12px; color:var(--text-muted)"></span>
-            </div>
-
-            <div class="layout-grid">
-                <div class="panel">
-                    <h3>Dados do Produto</h3>
-                    
-                    <div class="form-group">
-                        <label>Buscar no SharePoint (Base LIS.xlsx)</label>
-                        <input list="db-products" id="comercial_name" placeholder="Digite o nome comercial..." onchange="fillFromDB()">
-                        <datalist id="db-products"></datalist>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Tipo</label>
-                        <select id="tipo">
-                            <option value="Óleo">Óleo</option>
-                            <option value="Graxa">Graxa</option>
-                        </select>
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                        <div class="form-group">
-                            <label>Viscosidade (ISO VG)</label>
-                            <input type="number" id="visc" placeholder="Ex: 220">
-                        </div>
-                        <div class="form-group">
-                            <label>Base (Tipo)</label>
-                            <select id="base_tipo">
-                                <option value="Mineral">Mineral</option>
-                                <option value="Sintético">Sintético</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <button class="btn-primary" onclick="generateLIS()">Gerar Código LIS</button>
-                    <button class="btn-primary" style="background:#28A745; margin-top:10px;" onclick="saveToSharePoint()">Salvar no SharePoint</button>
-                    <button onclick="pescarID()" style="background: #DC3545; color: white; padding: 15px; border: none; border-radius: 4px; width: 100%; margin-top: 20px; font-weight: bold; cursor: pointer;">
-                        🕵️‍♂️ PESCAR ID DA PLANILHA
-                    </button>   
-
-                </div>
-
-                <div class="panel">
-                    <h3>Preview da Tag (Pictograma)</h3>
-                    <div class="lis-preview-box">
-                        <div id="lis-visual" class="lis-shape" style="border-radius: 50%;">
-                            --
-                        </div>
-                    </div>
-                    
-                    <div style="margin-top: 20px;">
-                        <p style="font-size:12px; color:var(--text-muted); margin-bottom:5px;">Código Gerado:</p>
-                        <div id="lis-code-text" style="font-family:'Roboto Mono'; font-size:20px; color:var(--accent); background:var(--bg-input); padding:10px; border-radius:4px; text-align:center;">
-                            Aguardando...
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="header">
+      <span class="logo">SÍMIC LIS CALC</span>
+      <div>
+        <span id="user-name" style="font-size:12px; margin-right: 10px; color:var(--text-label)"></span>
+        <button class="btn-ms" onclick="signIn()" id="btn-login">Login MS365</button>
+      </div>
     </div>
 
-    
+    <div class="calculator-body">
+      
+      <div class="field-group">
+        <label>Nome Comercial (Para DB SharePoint)</label>
+        <input type="text" id="comercial_name" placeholder="Ex: Mobil DTE 25">
+      </div>
+
+      <div class="mode-switcher">
+        <div class="mode-btn active" id="btn-oleo" onclick="setMode('oleo')">💧 Óleo</div>
+        <div class="mode-btn" id="btn-graxa" onclick="setMode('graxa')">⭕ Graxa</div>
+      </div>
+
+      <div id="panel-oleo">
+        <div class="row">
+          <div class="col field-group">
+            <label>Família ISO</label>
+            <input list="list-families" id="oleo_familia" placeholder="Ex: Hidráulico" onchange="populateIsoCodes()">
+            <datalist id="list-families">
+              <option value="Hidráulico (H)"><option value="Engrenagem (C)"><option value="Compressor (D)">
+              <option value="Motor/Auto"><option value="Turbina (T)"><option value="Térmico (U)">
+            </datalist>
+          </div>
+          <div class="col field-group">
+            <label>Aplicação ISO</label>
+            <input list="list-iso-codes" id="oleo_iso_code" placeholder="Ex: HM">
+            <datalist id="list-iso-codes"></datalist>
+          </div>
+        </div>
+      </div>
+
+      <div id="panel-graxa" class="hidden">
+        <div class="field-group">
+          <label>Espessante (Tab 19)</label>
+          <input list="list-thick" id="espessante" placeholder="Selecione...">
+          <datalist id="list-thick">
+            <option value="Lítio (LI)"><option value="Complexo Lítio (LX)"><option value="Poliuréia (PU)">
+            <option value="Sulfonato Cálcio (CS)"><option value="Alumínio (AL)"><option value="Comp. Alumínio (AX)">
+            <option value="Bentona (BE)"><option value="Lítio-Cálcio (LC)"><option value="PTFE (PTFE)">
+          </datalist>
+        </div>
+        <div class="row">
+          <div class="col field-group">
+            <label>Grau NLGI</label>
+            <select id="nlgi">
+              <option value="000">000</option><option value="00">00</option><option value="0">0</option>
+              <option value="1">1</option><option value="2" selected>2</option><option value="3">3</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="iso-calculator">
+          <span class="iso-header">ISO 6743-9 (CALCULADORA DE CÓDIGO)</span>
+          <div class="row" style="margin-bottom:10px;">
+            <div class="col field-group"><label>Temp Mín</label><select id="tm"><option value="A">0°C</option><option value="B" selected>-20°C</option><option value="C">-30°C</option><option value="D">-40°C</option></select></div>
+            <div class="col field-group"><label>Temp Máx</label><select id="tmax"><option value="A">60°C</option><option value="B">90°C</option><option value="C" selected>120°C</option><option value="E">160°C</option><option value="H">240°C</option></select></div>
+          </div>
+          <div class="row">
+            <div class="col field-group"><label>Ambiente</label><select id="agua"><option value="A">Seco s/ Prot</option><option value="B" selected>Seco c/ Prot</option><option value="D">Úmido s/ Prot</option><option value="E">Úmido c/ Prot</option><option value="H">Lavagem</option><option value="I">Água Salgada</option></select></div>
+            <div class="col field-group"><label>Carga EP</label><select id="carga"><option value="A">Não</option><option value="B" selected>Sim (EP)</option></select></div>
+          </div>
+        </div>
+      </div>
+
+      <hr style="border:0; border-top:1px solid #455A64; width:100%; margin:0;">
+
+      <div class="row">
+        <div class="col field-group">
+          <label>Viscosidade</label>
+          <input type="text" id="visc" placeholder="Ex: 68">
+        </div>
+        <div class="col field-group">
+          <label>Tipo Base</label>
+          <input list="list-base-type" id="base_type" placeholder="Selecione...">
+          <datalist id="list-base-type">
+            <option value="Mineral (M)"><option value="Sintético (S)">
+            <option value="Semissintético (B)"><option value="Vegetal (V)">
+          </datalist>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col field-group">
+           <label>Classif. Base</label>
+           <input list="list-base-class" id="base_class" placeholder="Ex: G1">
+           <datalist id="list-base-class">
+             <option value="Grupo I - Parafínico (G1)"><option value="Grupo II - Hidroprocessado (G2)"><option value="Grupo III - Hidrofracionado (G3)">
+             <option value="Polialfaolefina (PAO)"><option value="Éster (ES)"><option value="Polialquilenoglicol (PAG)">
+             <option value="Naftênico (NAF)"><option value="Silicone (SI)">
+           </datalist>
+        </div>
+        <div class="col field-group">
+           <label>Especial</label>
+           <input list="list-special" id="especial" placeholder="(Opcional)">
+           <datalist id="list-special">
+             <option value="Alimentício H1 (H1)"><option value="Livre de Zinco (ZF)"><option value="Biodegradável (BIO)"><option value="Molibdênio (MoS2)">
+           </datalist>
+        </div>
+      </div>
+
+      <div class="tags-preview-container">
+          <div id="render-oleo" class="tag-oleo">
+              <div class="special" id="tag_o_spec"></div>
+              <div class="color" id="tag_o_color"></div>
+              <div class="grey"><span>ISO VG <span id="tag_o_visc_side">--</span></span></div>
+              <div class="app" id="tag_o_app">--</div>
+              <div class="code" id="tag_o_code">AGUARDANDO...</div>
+          </div>
+          <div id="render-graxa" class="tag-graxa hidden">
+              <div class="bg-color" id="tag_g_color"></div>
+              <div class="thick" id="tag_g_thick">--</div>
+              <div class="code" id="tag_g_code">AGUARDANDO...</div>
+              <div class="nlgi">NLGI <span id="tag_g_nlgi" style="margin-left:5px;">--</span></div>
+          </div>
+      </div>
+
+    </div>
+
+    <div class="footer">
+      <div class="result-container">
+        <input type="text" id="final-code" value="LIS-CODE..." readonly>
+        <div class="copy-icon" onclick="copyCode()" title="Copiar">📋</div>
+      </div>
+      <div class="action-buttons">
+        <button class="btn-primary" onclick="gerarCodigo()">1. Gerar LIS</button>
+        <button class="btn-primary btn-success" onclick="baixarPNG()">2. Baixar PNG</button>
+        <button class="btn-primary btn-success" onclick="baixarPPTX()" style="background:#EF7D40; box-shadow: 0 4px 0 #bd5b28;">3. Baixar PPTX</button>
+        <button class="btn-primary" style="background:#0078D4; color:white; box-shadow: 0 4px 0 #005A9E;" onclick="saveToSharePoint()">Salvar BD</button>
+        <button class="btn-secondary" onclick="clearFields()">Limpar</button>
+      </div>
+    </div>
 
     <script>
-
-        // Adicione essa variável no topo do seu código
-        let DRIVE_ID = "b!rCudEbHTyk6PZ-f9u8Apl2qHlmNEJ9lFiMdt_hPUGft63_TsvD-bRYjWP6E9I1Re"; 
-        const FILE_ID = "0164J74WRQGFGZ7NJBJBF3IABKWOVVQKYF"; 
-
-       
-
-        async function pescarID() {
-            try {
-                const token = await getToken();
-                const res = await fetch("https://graph.microsoft.com/v1.0/me/drive/recent", { 
-                    headers: { Authorization: `Bearer ${token}` } 
-                });
-                const json = await res.json();
-                const arquivo = json.value.find(item => item.name === "Base LIS.xlsx");
-                
-                if (arquivo) {
-                    
-                    const fileId = arquivo.remoteItem ? arquivo.remoteItem.id : arquivo.id;
-                    const driveId = arquivo.remoteItem ? arquivo.remoteItem.parentReference.driveId : arquivo.parentReference.driveId;
-                    
-                    prompt(`Copie o texto abaixo e cole na variável DRIVE_ID:`, driveId);
-                    prompt(`Copie o texto abaixo e cole na variável FILE_ID:`, fileId);
-                } else {
-                    alert("A planilha não está nos seus recentes! Abra ela no SharePoint, feche e tente de novo.");
-                }
-            } catch (e) {
-                alert("Erro no radar: " + e);
-            }
-        }
-
-        async function loadDB() {
-            try {
-                if (!DRIVE_ID) return console.warn("Pesqque o DRIVE_ID primeiro!");
-
-                const token = await getToken();
-                // URL à prova de balas usando DriveId e ItemId
-                const url = `https://graph.microsoft.com/v1.0/drives/${DRIVE_ID}/items/${FILE_ID}/workbook/worksheets/LIS/tables/${TABLE_NAME}/rows`;
-                
-                const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-                if(!res.ok) throw new Error("Erro ao ler tabela. Verifique se o nome da aba é 'LIS' e a tabela é 'TabelaLubrificantes'");
-                
-                const json = await res.json();
-                const datalist = document.getElementById("db-products");
-                datalist.innerHTML = "";
-                sharepointDB = [];
-
-                json.value.forEach(row => {
-                    const vals = row.values[0];
-                    const obj = { comercial: vals[0], tipo: vals[1], visc: vals[2], base: vals[3] };
-                    sharepointDB.push(obj);
-                    
-                    const option = document.createElement("option");
-                    option.value = obj.comercial;
-                    datalist.appendChild(option);
-                });
-                console.log("Banco carregado com sucesso!");
-            } catch (error) {
-                console.error(error);
-                alert(error.message);
-            }
-        }
-
-        async function saveToSharePoint() {
-            try {
-                const comercial = document.getElementById("comercial_name").value;
-                const tipo = document.getElementById("tipo").value;
-                const visc = document.getElementById("visc").value;
-                const base = document.getElementById("base_tipo").value;
-
-                if(!comercial) return alert("Preencha o nome comercial!");
-
-                const token = await getToken();
-                const url = `https://graph.microsoft.com/v1.0/drives/${DRIVE_ID}/items/${FILE_ID}/workbook/worksheets/LIS/tables/${TABLE_NAME}/rows/add`;
-                
-                // AVISO: Se a sua tabela no Excel tiver apenas 4 colunas, o array abaixo 
-                // deve ter apenas 4 elementos. Se tiver mais ou menos, o Graph API dá erro.
-                const newRow = [[comercial, tipo, visc, base]]; 
-
-                const response = await fetch(url, {
-                    method: "POST",
-                    headers: { 
-                        Authorization: `Bearer ${token}`, 
-                        "Content-Type": "application/json" 
-                    },
-                    body: JSON.stringify({ index: null, values: newRow })
-                });
-                
-                if (!response.ok) throw new Error("Falha ao salvar a linha no Excel.");
-
-                alert("Salvo na planilha do SharePoint com sucesso!");
-                loadDB(); // Atualiza a lista
-            } catch (error) {
-                console.error(error);
-                alert("Erro ao salvar.");
-            }
-        }
-
-
-       
-        const msalConfig = {
-            auth: {
-                clientId: "cd97adfa-663f-4324-93ab-cc7e57d158e8", 
-                authority: "https://login.microsoftonline.com/cd6259c8-7fcd-4de7-a4c4-9059729e62e7", 
-                redirectUri: window.location.origin // CRÍTICO: Não apague essa linha!
-            }
-        };
-
-       
-        const TABLE_NAME = "TabelaLubrificantes"; 
-
-        const msalInstance = new msal.PublicClientApplication(msalConfig);
-        let sharepointDB = [];
-
-       
-        async function signIn() {
-            try {
-                const loginResponse = await msalInstance.loginPopup({
-                    scopes: ["Files.ReadWrite.All", "User.Read"]
-                });
-                document.getElementById("user-name").innerText = "👤 " + loginResponse.account.name;
-                document.getElementById("login-screen").style.display = "none";
-                document.getElementById("app-screen").style.display = "block";
-                
-                loadDB(); // Puxa a planilha assim que logar
-            } catch (err) {
-                console.error(err);
-                alert("Erro no login. Verifique o console.");
-            }
-        }
-
-        async function getToken() {
-            const account = msalInstance.getAllAccounts()[0];
-            const response = await msalInstance.acquireTokenSilent({
-                scopes: ["Files.ReadWrite.All"],
-                account: account
-            });
-            return response.accessToken;
-        }
-
-   
+      let activeMode = 'oleo';
       
-       
-        function fillFromDB() {
-            const input = document.getElementById("comercial_name").value;
-            const found = sharepointDB.find(p => p.comercial === input);
-            if(found) {
-                document.getElementById("tipo").value = found.tipo;
-                document.getElementById("visc").value = found.visc;
-                document.getElementById("base_tipo").value = found.base;
-                generateLIS();
-            }
+      // SharePoint Configs
+      let DRIVE_ID = "b!rCudEbHTyk6PZ-f9u8Apl2qHlmNEJ9lFiMdt_hPUGft63_TsvD-bRYjWP6E9I1Re"; 
+      const FILE_ID = "0164J74WRQGFGZ7NJBJBF3IABKWOVVQKYF"; 
+      const TABLE_NAME = "TabelaLubrificantes"; 
+      const msalConfig = { auth: { clientId: "cd97adfa-663f-4324-93ab-cc7e57d158e8", authority: "https://login.microsoftonline.com/cd6259c8-7fcd-4de7-a4c4-9059729e62e7", redirectUri: window.location.origin } };
+      const msalInstance = new msal.PublicClientApplication(msalConfig);
+
+      // Mapa de Cores ISO LIS (Tabela 21)
+      const colorMap = {
+          "10": "#B0D4DE", "15": "#E5BBCB", "22": "#144E39", "32": "#2395CC",
+          "46": "#D13528", "68": "#08743A", "100": "#FFFFFF", "150": "#2B3C85",
+          "220": "#91293D", "320": "#DC882B", "460": "#818833", "680": "#703682",
+          "1000": "#A07BAD", "1500": "#8A9197", "2200": "#35ADA9", "3200": "#903983"
+      };
+
+      const ISO_DATA = {
+        "Hidráulico (H)": ["HM (Óleo Mineral - Antidesgaste)", "HL (Óleo Mineral - R&O)", "HV (Alto Índice Viscosidade)"],
+        "Engrenagem (C)": ["CKC (Engrenagem Fechada - Carga Média)", "CKD (Engrenagem Fechada - Carga Pesada)", "CKJ (Engrenagem Aberta - Alta Visc.)"],
+        "Compressor (D)": ["DAA (Compressor Pistão - Leve)", "DAG (Compressor Rotativo - Injetado)"],
+        "Motor/Auto": ["CJ-4 (Diesel 4T - Pesado)", "GL-5 (Transmissão Hipóide)"]
+      };
+
+      function setMode(mode) {
+        activeMode = mode;
+        if(mode === 'oleo') {
+          document.getElementById('panel-oleo').classList.remove('hidden');
+          document.getElementById('panel-graxa').classList.add('hidden');
+          document.getElementById('btn-oleo').classList.add('active');
+          document.getElementById('btn-graxa').classList.remove('active');
+          document.getElementById('render-oleo').classList.remove('hidden');
+          document.getElementById('render-graxa').classList.add('hidden');
+        } else {
+          document.getElementById('panel-oleo').classList.add('hidden');
+          document.getElementById('panel-graxa').classList.remove('hidden');
+          document.getElementById('btn-graxa').classList.add('active');
+          document.getElementById('btn-oleo').classList.remove('active');
+          document.getElementById('render-oleo').classList.add('hidden');
+          document.getElementById('render-graxa').classList.remove('hidden');
+        }
+      }
+
+      function populateIsoCodes() {
+        var familiaInput = document.getElementById('oleo_familia').value;
+        var datalist = document.getElementById('list-iso-codes');
+        datalist.innerHTML = "";
+        if (ISO_DATA[familiaInput]) ISO_DATA[familiaInput].forEach(c => { var opt = document.createElement('option'); opt.value = c; datalist.appendChild(opt); });
+      }
+
+      function extractInsideParens(val) { if (!val) return ""; var m = val.match(/\(([^)]+)\)/); return m ? m[1] : val; }
+      function extractBeforeParens(val) { if (!val) return ""; return val.split(' (')[0].trim(); }
+
+      function gerarCodigo() {
+        var visc = document.getElementById('visc').value.toUpperCase().replace(/\s/g, '');
+        var baseT = extractInsideParens(document.getElementById('base_type').value);
+        var baseC = extractInsideParens(document.getElementById('base_class').value);
+        var especial = extractInsideParens(document.getElementById('especial').value);
+        var parts = [];
+
+        var codeColor = colorMap[visc] || '#FFFFFF'; // Pega a cor oficial
+
+        if (activeMode === 'graxa') {
+          var thick = extractInsideParens(document.getElementById('espessante').value);
+          var nlgi = document.getElementById('nlgi').value;
+          var isoComplex = "X" + document.getElementById('tm').value + document.getElementById('tmax').value + document.getElementById('agua').value + document.getElementById('carga').value;
+          
+          if(!thick) { alert("Preencha o espessante!"); return; }
+          parts = [thick, isoComplex, nlgi, visc, baseT, baseC];
+          
+          // Renderiza Tag Graxa
+          document.getElementById('tag_g_thick').innerText = thick;
+          document.getElementById('tag_g_nlgi').innerText = nlgi;
+          document.getElementById('tag_g_color').style.backgroundColor = codeColor;
+
+        } else {
+          var isoApp = extractBeforeParens(document.getElementById('oleo_iso_code').value);
+          if (!isoApp) { alert("Preencha a Sigla de Aplicação (Óleo)!"); return; }
+          parts = [isoApp, visc, baseT, baseC];
+
+          // Renderiza Tag Óleo
+          document.getElementById('tag_o_app').innerText = isoApp;
+          document.getElementById('tag_o_spec').innerText = especial ? especial : "";
+          document.getElementById('tag_o_visc_side').innerText = visc;
+          document.getElementById('tag_o_color').style.backgroundColor = codeColor;
         }
 
-        function generateLIS() {
-            const tipo = document.getElementById("tipo").value;
-            const visc = document.getElementById("visc").value || "00";
-            const base = document.getElementById("base_tipo").value;
+        if (especial && activeMode !== 'oleo') parts.push(especial); // Óleo já tem o especial em outro canto visual
+        else if (especial && activeMode === 'oleo') parts.push(especial);
 
-            
-            let corBase = base === "Sintético" ? "#0078D4" : "#F2C811"; // Azul sintético, Amarelo mineral
-            let formato = tipo === "Óleo" ? "50%" : "10%"; // Redondo para Óleo, Quadrado curvo p/ Graxa
-            let sigla = tipo === "Óleo" ? "OL" : "GR";
+        var finalStr = parts.filter(Boolean).join('-');
+        document.getElementById('final-code').value = finalStr;
 
-            // Atualiza Visual
-            const visual = document.getElementById("lis-visual");
-            visual.style.backgroundColor = corBase;
-            visual.style.borderRadius = formato;
-            visual.innerText = visc;
+        if (activeMode === 'graxa') document.getElementById('tag_g_code').innerText = finalStr;
+        else document.getElementById('tag_o_code').innerText = finalStr;
+      }
 
-            // Atualiza Texto
-            document.getElementById("lis-code-text").innerText = `${sigla}-${visc}-${base.substring(0,3).toUpperCase()}`;
+      // --- FUNÇÕES DE EXPORTAÇÃO (IMAGEM E PPTX) ---
+      async function capturarTag() {
+          const idTarget = activeMode === 'oleo' ? 'render-oleo' : 'render-graxa';
+          const element = document.getElementById(idTarget);
+          // html2canvas tira a "foto" da div gerada
+          const canvas = await html2canvas(element, { scale: 3, backgroundColor: null });
+          return canvas.toDataURL('image/png');
+      }
+
+      async function baixarPNG() {
+          const dataUrl = await capturarTag();
+          const link = document.createElement('a');
+          const codeName = document.getElementById('final-code').value;
+          link.download = `Tag_${codeName !== "LIS-CODE..." ? codeName : "Vazia"}.png`;
+          link.href = dataUrl;
+          link.click();
+      }
+
+      async function baixarPPTX() {
+          const dataUrl = await capturarTag();
+          let pptx = new PptxGenJS();
+          let slide = pptx.addSlide();
+          const codeName = document.getElementById('final-code').value;
+          
+          // Adiciona texto de título e a imagem
+          slide.addText(`Identificação: ${codeName}`, { x:0.5, y:0.5, fontSize:18, color:"363636" });
+          slide.addImage({ data: dataUrl, x: 0.5, y: 1.5, w: 4, h: 4 });
+          
+          pptx.writeFile({ fileName: `Tag_${codeName !== "LIS-CODE..." ? codeName : "Vazia"}.pptx` });
+      }
+
+      // --- SHAREPOINT LOGIC ---
+      async function signIn() {
+        try {
+            const loginResponse = await msalInstance.loginPopup({ scopes: ["Files.ReadWrite.All", "User.Read"] });
+            document.getElementById("user-name").innerText = "👤 " + loginResponse.account.name;
+            document.getElementById("btn-login").style.display = "none";
+        } catch (err) { console.error(err); alert("Erro no login MSAL."); }
+      }
+
+      async function getToken() {
+        const account = msalInstance.getAllAccounts()[0];
+        if(!account) throw new Error("Faça o Login MS365 primeiro!");
+        const response = await msalInstance.acquireTokenSilent({ scopes: ["Files.ReadWrite.All"], account: account });
+        return response.accessToken;
+      }
+
+      async function saveToSharePoint() {
+        try {
+            const comercial = document.getElementById("comercial_name").value;
+            const visc = document.getElementById("visc").value;
+            const base = extractInsideParens(document.getElementById("base_tipo")?.value || document.getElementById("base_type").value);
+            const tipoStr = activeMode === 'oleo' ? 'Óleo' : 'Graxa';
+
+            if(!comercial) return alert("Preencha o NOME COMERCIAL do produto!");
+            if(document.getElementById("final-code").value === "LIS-CODE...") return alert("Gere o código primeiro!");
+
+            const token = await getToken();
+            const url = `https://graph.microsoft.com/v1.0/drives/${DRIVE_ID}/items/${FILE_ID}/workbook/worksheets/LIS/tables/${TABLE_NAME}/rows/add`;
+            const newRow = [[comercial, tipoStr, visc, base]]; 
+
+            const response = await fetch(url, {
+                method: "POST",
+                headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+                body: JSON.stringify({ index: null, values: newRow })
+            });
+            if (!response.ok) throw new Error("Falha ao salvar a linha no Excel. Verifique permissões ou o nome da tabela.");
+            alert("✅ Salvo na planilha do SharePoint com sucesso!");
+        } catch (error) {
+            console.error(error); alert(error.message);
         }
+      }
+
+      function clearFields() {
+        document.querySelectorAll('input').forEach(i => i.value = "");
+        document.getElementById('nlgi').value = "2";
+        document.getElementById('final-code').value = "LIS-CODE...";
+        document.getElementById('tag_o_app').innerText = "--";
+        document.getElementById('tag_g_thick').innerText = "--";
+      }
+
+      function copyCode() {
+        var copyText = document.getElementById("final-code");
+        copyText.select(); document.execCommand("copy");
+      }
     </script>
-</body>
+  </body>
 </html>
