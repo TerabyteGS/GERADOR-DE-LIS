@@ -12,7 +12,7 @@
             --bg-body: #1F2B33;
             --bg-panel: #263540;
             --bg-input: #151D22;
-            --accent: #EF7D40; /* Laranja Símic */
+            --accent: #EF7D40; 
             --accent-hover: #D66A30;
             --text-main: #FFFFFF;
             --text-muted: #889AA6;
@@ -35,7 +35,7 @@
             max-width: 900px;
         }
 
-        /* TELA DE LOGIN */
+        
         #login-screen {
             text-align: center;
             margin-top: 15vh;
@@ -60,7 +60,7 @@
         }
         .btn-ms:hover { background: #0060A6; }
 
-        /* TELA DO APLICATIVO */
+        
         #app-screen { display: none; }
         
         .header {
@@ -88,7 +88,7 @@
         }
         .panel h3 { margin-top: 0; color: var(--text-muted); font-size: 14px; text-transform: uppercase; }
 
-        /* Formulários */
+        
         .form-group { margin-bottom: 15px; }
         label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 5px; }
         input, select {
@@ -116,7 +116,7 @@
         }
         .btn-primary:hover { background: var(--accent-hover); }
 
-        /* Área do LIS Visual */
+        
         .lis-preview-box {
             display: flex;
             align-items: center;
@@ -128,11 +128,11 @@
             margin-top: 20px;
         }
         
-        /* Forma LIS Base (Ex: Losango/Hexágono - Simplificado para Círculo/Quadrado por enquanto) */
+        
         .lis-shape {
             width: 100px;
             height: 100px;
-            background: #ccc; /* Cor dinâmica */
+            background: #ccc; 
             display: flex;
             align-items: center;
             justify-content: center;
@@ -225,14 +225,14 @@
         async function pescarID() {
         try {
             const token = await getToken();
-            // Busca os últimos arquivos que VOCÊ abriu na empresa
+            
             const res = await fetch("https://graph.microsoft.com/v1.0/me/drive/recent", { 
                 headers: { Authorization: `Bearer ${token}` } 
             });
             
             const json = await res.json();
             
-            // Procura exatamente pelo nome da sua planilha
+            
             const arquivo = json.value.find(item => item.name === "Base LIS.xlsx");
             
             if (arquivo) {
@@ -248,9 +248,7 @@
     }
 
 
-        // ==========================================
-        // 1. CONFIGURAÇÃO AZURE AD & SHAREPOINT
-        // ==========================================
+       
         const msalConfig = {
             auth: {
                 clientId: "cd97adfa-663f-4324-93ab-cc7e57d158e8", 
@@ -259,8 +257,8 @@
             }
         };
 
-        // COLE O SEU FILE_ID AQUI!
-        const FILE_ID = "COLE_AQUI_AQUELE_ID_GIGANTE_DO_GRAPH_EXPLORER"; 
+        
+        const FILE_ID = "0164J74WRQGFGZ7NJBJBF3IABKWOVVQKYF"; 
         
         // A tabela dentro da aba "LIS" DEVE ter esse nome lá no Excel (Design da Tabela -> Nome)
         const TABLE_NAME = "TabelaLubrificantes"; 
