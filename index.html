@@ -369,9 +369,7 @@
             }
         }
 
-        // ==========================================
-        // 4. LÓGICA DO APP (Preenchimento e Design LIS)
-        // ==========================================
+       
         function fillFromDB() {
             const input = document.getElementById("comercial_name").value;
             const found = sharepointDB.find(p => p.comercial === input);
@@ -388,7 +386,7 @@
             const visc = document.getElementById("visc").value || "00";
             const base = document.getElementById("base_tipo").value;
 
-            // Lógica fictícia para formato/cor (Ajuste para o padrão Símic real)
+            
             let corBase = base === "Sintético" ? "#0078D4" : "#F2C811"; // Azul sintético, Amarelo mineral
             let formato = tipo === "Óleo" ? "50%" : "10%"; // Redondo para Óleo, Quadrado curvo p/ Graxa
             let sigla = tipo === "Óleo" ? "OL" : "GR";
