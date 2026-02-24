@@ -222,102 +222,30 @@
 
     <script>
 
-        // Adicione essa variável no topo do seu código
-        let DRIVE_ID = ""; 
-        const FILE_ID = "0164J74WRQGFGZ7NJBJBF3IABKWOVVQKYF"; 
-
-       
-
         async function pescarID() {
-            try {
-                const token = await getToken();
-                const res = await fetch("https://graph.microsoft.com/v1.0/me/drive/recent", { 
-                    headers: { Authorization: `Bearer ${token}` } 
-                });
-                const json = await res.json();
-                const arquivo = json.value.find(item => item.name === "Base LIS.xlsx");
-                
-                if (arquivo) {
-                    // Pegamos o ID do arquivo E o ID do Drive (biblioteca) onde ele está
-                    const fileId = arquivo.remoteItem ? arquivo.remoteItem.id : arquivo.id;
-                    const driveId = arquivo.remoteItem ? arquivo.remoteItem.parentReference.driveId : arquivo.parentReference.driveId;
-                    
-                    prompt(`Copie o texto abaixo e cole na variável DRIVE_ID:`, driveId);
-                    prompt(`Copie o texto abaixo e cole na variável FILE_ID:`, fileId);
-                } else {
-                    alert("A planilha não está nos seus recentes! Abra ela no SharePoint, feche e tente de novo.");
-                }
-            } catch (e) {
-                alert("Erro no radar: " + e);
+        try {
+            const token = await getToken();
+            
+            const res = await fetch("https://graph.microsoft.com/v1.0/me/drive/recent", { 
+                headers: { Authorization: `Bearer ${token}` } 
+            });
+            
+            const json = await res.json();
+            
+            
+            const arquivo = json.value.find(item => item.name === "Base LIS.xlsx");
+            
+            if (arquivo) {
+                // Se for do SharePoint, o ID fica dentro de remoteItem
+                const idGigante = arquivo.remoteItem ? arquivo.remoteItem.id : arquivo.id;
+                prompt("🎉 ACHAMOS O CÓDIGO! Copie o texto abaixo e cole na sua variável FILE_ID:", idGigante);
+            } else {
+                alert("A planilha não está nos seus recentes!\n\nVá no navegador normal, abra a 'Base LIS.xlsx' no SharePoint, olhe pra ela por 5 segundos, feche e clique neste botão de novo.");
             }
+        } catch (e) {
+            alert("Erro no radar: " + e);
         }
-
-        async function loadDB() {
-            try {
-                if (!DRIVE_ID) return console.warn("Pesqque o DRIVE_ID primeiro!");
-
-                const token = await getToken();
-                // URL à prova de balas usando DriveId e ItemId
-                const url = `https://graph.microsoft.com/v1.0/drives/${DRIVE_ID}/items/${FILE_ID}/workbook/worksheets/LIS/tables/${TABLE_NAME}/rows`;
-                
-                const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-                if(!res.ok) throw new Error("Erro ao ler tabela. Verifique se o nome da aba é 'LIS' e a tabela é 'TabelaLubrificantes'");
-                
-                const json = await res.json();
-                const datalist = document.getElementById("db-products");
-                datalist.innerHTML = "";
-                sharepointDB = [];
-
-                json.value.forEach(row => {
-                    const vals = row.values[0];
-                    const obj = { comercial: vals[0], tipo: vals[1], visc: vals[2], base: vals[3] };
-                    sharepointDB.push(obj);
-                    
-                    const option = document.createElement("option");
-                    option.value = obj.comercial;
-                    datalist.appendChild(option);
-                });
-                console.log("Banco carregado com sucesso!");
-            } catch (error) {
-                console.error(error);
-                alert(error.message);
-            }
-        }
-
-        async function saveToSharePoint() {
-            try {
-                const comercial = document.getElementById("comercial_name").value;
-                const tipo = document.getElementById("tipo").value;
-                const visc = document.getElementById("visc").value;
-                const base = document.getElementById("base_tipo").value;
-
-                if(!comercial) return alert("Preencha o nome comercial!");
-
-                const token = await getToken();
-                const url = `https://graph.microsoft.com/v1.0/drives/${DRIVE_ID}/items/${FILE_ID}/workbook/worksheets/LIS/tables/${TABLE_NAME}/rows/add`;
-                
-                // AVISO: Se a sua tabela no Excel tiver apenas 4 colunas, o array abaixo 
-                // deve ter apenas 4 elementos. Se tiver mais ou menos, o Graph API dá erro.
-                const newRow = [[comercial, tipo, visc, base]]; 
-
-                const response = await fetch(url, {
-                    method: "POST",
-                    headers: { 
-                        Authorization: `Bearer ${token}`, 
-                        "Content-Type": "application/json" 
-                    },
-                    body: JSON.stringify({ index: null, values: newRow })
-                });
-                
-                if (!response.ok) throw new Error("Falha ao salvar a linha no Excel.");
-
-                alert("Salvo na planilha do SharePoint com sucesso!");
-                loadDB(); // Atualiza a lista
-            } catch (error) {
-                console.error(error);
-                alert("Erro ao salvar.");
-            }
-        }
+    }
 
 
        
@@ -329,13 +257,18 @@
             }
         };
 
-       
+        
+        const FILE_ID = "0164J74WRQGFGZ7NJBJBF3IABKWOVVQKYF"; 
+        
+        // A tabela dentro da aba "LIS" DEVE ter esse nome lá no Excel (Design da Tabela -> Nome)
         const TABLE_NAME = "TabelaLubrificantes"; 
 
         const msalInstance = new msal.PublicClientApplication(msalConfig);
         let sharepointDB = [];
 
-       
+        // ==========================================
+        // 2. AUTENTICAÇÃO
+        // ==========================================
         async function signIn() {
             try {
                 const loginResponse = await msalInstance.loginPopup({
@@ -362,7 +295,78 @@
         }
 
    
-      
+        async function loadDB() {
+            try {
+                const token = await getToken();
+                
+                // URL para acessar itens em um site específico (desenvolvimento_simic)
+                const url = `https://graph.microsoft.com/v1.0/sites/simiccombr.sharepoint.com:/sites/desenvolvimento_simic:/drive/items/${FILE_ID}/workbook/worksheets/LIS/tables/${TABLE_NAME}/rows`;
+                
+                const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+                
+                if(!res.ok) throw new Error("Erro ao ler tabela. Verifique o FILE_ID e se a tabela chama " + TABLE_NAME);
+                
+                const json = await res.json();
+                
+                // Limpa a lista
+                const datalist = document.getElementById("db-products");
+                datalist.innerHTML = "";
+                sharepointDB = [];
+
+                // Mapeia as linhas do Excel (Ajuste os índices conforme suas colunas reais)
+                json.value.forEach(row => {
+                    const vals = row.values[0];
+                    const obj = {
+                        comercial: vals[0], // Coluna A
+                        tipo: vals[1],      // Coluna B
+                        visc: vals[2],      // Coluna C
+                        base: vals[3]       // Coluna D
+                    };
+                    sharepointDB.push(obj);
+                    
+                    const option = document.createElement("option");
+                    option.value = obj.comercial;
+                    datalist.appendChild(option);
+                });
+                console.log("Banco carregado com sucesso!");
+            } catch (error) {
+                console.error(error);
+                alert(error.message);
+            }
+        }
+
+        async function saveToSharePoint() {
+            try {
+                const comercial = document.getElementById("comercial_name").value;
+                const tipo = document.getElementById("tipo").value;
+                const visc = document.getElementById("visc").value;
+                const base = document.getElementById("base_tipo").value;
+
+                if(!comercial) return alert("Preencha o nome comercial!");
+
+                const token = await getToken();
+                const url = `https://graph.microsoft.com/v1.0/sites/simiccombr.sharepoint.com:/sites/desenvolvimento_simic:/drive/items/${FILE_ID}/workbook/worksheets/LIS/tables/${TABLE_NAME}/rows/add`;
+                
+                // Os valores devem bater exatamente com a ordem das colunas no Excel
+                const newRow = [[comercial, tipo, visc, base, "", "", ""]];
+
+                await fetch(url, {
+                    method: "POST",
+                    headers: { 
+                        Authorization: `Bearer ${token}`, 
+                        "Content-Type": "application/json" 
+                    },
+                    body: JSON.stringify({ index: null, values: newRow })
+                });
+                
+                alert("Salvo no SharePoint com sucesso!");
+                loadDB(); // Atualiza a lista
+            } catch (error) {
+                console.error(error);
+                alert("Erro ao salvar.");
+            }
+        }
+
        
         function fillFromDB() {
             const input = document.getElementById("comercial_name").value;
